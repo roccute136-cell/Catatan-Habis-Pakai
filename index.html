@@ -105,6 +105,7 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
 </main>
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 var items = [], editId = null, query = "", dbc = null, ready = false, LS = "bhp-items";
 var $ = function (id) { return document.getElementById(id); };
@@ -116,40 +117,37 @@ function toast(m) {
   clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 1800);
 }
 
-/* ---------- data layer: shared db, fallback localStorage ---------- */
-function loadLocal() {
-  try { items = JSON.parse(localStorage.getItem(LS) || "[]"); } catch (e) { items = []; }
+/* ---------- data layer: Supabase ---------- */
+var SUPABASE_URL = "https://zhqxynkdurvftngzjgoo.supabase.co";
+var SUPABASE_KEY = "sb_publishable_i_Ayc5Q4UqPz3KDG7agXfQ_EL9FiWZl";
+var sb = null;
+function uid() { return crypto.randomUUID(); }
+
+async function loadRemote() {
+  var r = await sb.from("items").select("*").order("ts", { ascending: true });
+  if (r.error) throw r.error;
+  items = r.data.map(function (x) {
+    return { id: x.id, nama: x.nama, qty: Number(x.qty), harga: Number(x.harga), ts: Number(x.ts) };
+  });
   ready = true; render();
 }
-function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(items)); } catch (e) {} }
-
 async function initData() {
-  try {
-    var db = window.claude ? await window.claude.use("db") : null;
-    if (db) {
-      dbc = db.collection("items");
-      dbc.orderBy("ts", "asc").onSnapshot(function (s) {
-        items = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; });
-        ready = true; render();
-      }, function () { dbc = null; loadLocal(); });
-      return;
-    }
-  } catch (e) {}
-  loadLocal();
-}
-
-async function putItem(it) {
-  if (dbc) {
-    await dbc.doc(it.id).set({ nama: it.nama, qty: it.qty, harga: it.harga, ts: it.ts });
-  } else {
-    var i = items.findIndex(function (x) { return x.id === it.id; });
-    if (i >= 0) items[i] = it; else items.push(it);
-    saveLocal(); render();
+  if (!window.supabase || SUPABASE_URL.indexOf("ISI_") === 0) {
+    ready = true; render(); toast("Isi SUPABASE_URL dan SUPABASE_KEY di file"); return;
   }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  try { await loadRemote(); }
+  catch (e) { ready = true; render(); toast("Gagal terhubung ke database"); }
+}
+async function putItem(it) {
+  var r = await sb.from("items").upsert({ id: it.id, nama: it.nama, qty: it.qty, harga: it.harga, ts: it.ts });
+  if (r.error) throw r.error;
+  await loadRemote();
 }
 async function delItem(id) {
-  if (dbc) await dbc.doc(id).delete();
-  else { items = items.filter(function (x) { return x.id !== id; }); saveLocal(); render(); }
+  var r = await sb.from("items").delete().eq("id", id);
+  if (r.error) { toast("Gagal menghapus"); return; }
+  await loadRemote();
 }
 
 /* ---------- render dashboard ---------- */
@@ -201,7 +199,7 @@ $("f").addEventListener("submit", async function (e) {
   e.preventDefault();
   var old = editId && items.find(function (x) { return x.id === editId; });
   var it = {
-    id: editId || ("i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)),
+    id: editId || uid(),
     nama: $("nama").value.trim(), qty: Math.max(0.1, parseFloat($("qty").value) || 1),
     harga: Math.max(0, parseInt($("harga").value, 10) || 0), ts: old ? old.ts : Date.now()
   };
@@ -262,10 +260,10 @@ $("imp").addEventListener("change", async function () {
     if (!list.length) { toast("Format tidak dikenali"); return; }
     if (!confirm("Import " + list.length + " barang ke daftar?")) return;
     var base = Date.now();
-    await Promise.all(list.map(function (x, i) {
-      x.id = "i" + base.toString(36) + i; x.ts = base + i;
-      return putItem(x);
-    }));
+    var rows2 = list.map(function (x, i) { return { id: uid(), nama: x.nama, qty: x.qty, harga: x.harga, ts: base + i }; });
+    var rr = await sb.from("items").insert(rows2);
+    if (rr.error) throw rr.error;
+    await loadRemote();
     toast(list.length + " barang diimport");
   } catch (e) { toast("Gagal membaca file"); }
 });
