@@ -51,13 +51,14 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
 .btns{display:flex;gap:10px;margin-top:18px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;font-weight:600;z-index:20}
 #toast.show{opacity:1;transform:translateX(-50%)}
+.gd{max-width:720px}.gd ol{padding-left:20px;margin:0}.gd li{margin-bottom:10px}.gd h2{font-size:16px;margin:0 0 10px}.gd .card{margin-bottom:14px}code{background:var(--ac2);color:var(--ac);padding:1px 6px;border-radius:6px;font-size:13px}.note{color:var(--mu);font-size:13px;margin:10px 0 0}
 .hide{display:none}
 </style>
 </head>
 <body>
 <header><div class="bar">
   <div class="logo">📦 Bahan Habis Pakai</div>
-  <nav><a href="#dashboard" id="t-dashboard">Dashboard</a><a href="#input" id="t-input">Input</a></nav>
+  <nav><a href="#dashboard" id="t-dashboard">Dashboard</a><a href="#input" id="t-input">Input</a><a href="#guide" id="t-guide">Guide</a></nav>
 </div></header>
 
 <main>
@@ -107,6 +108,51 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
       <button class="btn sec" type="button" id="cn">Batal</button>
     </div>
   </form>
+</section>
+
+<section id="p-guide" class="hide gd">
+  <h1>Guide Import</h1>
+  <p class="sub">Cara memasukkan banyak barang sekaligus dari file spreadsheet.</p>
+
+  <div class="card">
+    <h2>Langkah</h2>
+    <ol>
+      <li>Unduh template di bawah, lalu isi dengan data barang Anda.</li>
+      <li>Hapus baris contoh yang tidak diperlukan.</li>
+      <li>Simpan file sebagai <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code>.</li>
+      <li>Buka <b>Dashboard</b>, klik <b>Import</b>, dan pilih file tersebut.</li>
+      <li>Periksa jumlah barang pada konfirmasi, lalu klik <b>OK</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Format kolom</h2>
+    <div class="wrap"><table style="min-width:0">
+      <thead><tr><th>No</th><th>Nama</th><th class="n">Qty</th><th class="n">Harga/Qty</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Lem G</td><td class="n">1</td><td class="n">8000</td></tr>
+        <tr><td>2</td><td>Cotton Bud</td><td class="n">2</td><td class="n">Rp7,000</td></tr>
+        <tr><td>3</td><td>Gula</td><td class="n">0.5</td><td class="n">10000</td></tr>
+      </tbody>
+    </table></div>
+    <ul style="padding-left:20px;margin:12px 0 0">
+      <li>Judul kolom wajib ada di baris pertama: <code>Nama</code>, <code>Qty</code> (atau <code>Jumlah</code>), dan <code>Harga/Qty</code> (judul diawali kata "Harga").</li>
+      <li>Kolom lain seperti <code>No</code> dan <code>Total</code> boleh ada, tetapi diabaikan. Total dihitung otomatis.</li>
+      <li>Qty boleh desimal, misalnya <code>0.5</code> atau <code>0,5</code>.</li>
+      <li>Harga boleh angka biasa atau berformat rupiah, misalnya <code>8000</code>, <code>Rp8,000</code>, atau <code>Rp8.000</code>.</li>
+      <li>Baris tanpa nama, atau dengan Qty kosong atau 0, dilewati.</li>
+      <li>Hanya sheet pertama yang dibaca.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Unduh template</h2>
+    <div class="tools" style="margin-bottom:0">
+      <button class="btn" type="button" id="tpx">Template .xlsx</button>
+      <button class="btn sec" type="button" id="tpc">Template .csv</button>
+    </div>
+    <p class="note">Import menambahkan data ke daftar yang sudah ada, tidak menimpa. Mengimpor file yang sama dua kali akan membuat data dobel. File hasil Export memiliki format berbeda, jadi tidak bisa diimpor kembali.</p>
+  </div>
 </section>
 </main>
 <div id="toast"></div>
@@ -355,10 +401,26 @@ $("dab").addEventListener("click", async function () {
   } catch (e) { console.error(e); toast("Gagal hapus: " + ((e && e.message) || e), 6000); }
 });
 
+/* ---------- template download ---------- */
+async function dlTemplate(kind) {
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", function () { return window.XLSX; });
+    var aoa = [["No", "Nama", "Qty", "Harga/Qty"], [1, "Lem G", 1, 8000], [2, "Cotton Bud", 2, 7000], [3, "Gula", 0.5, 10000]];
+    var ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [{ wch: 6 }, { wch: 40 }, { wch: 8 }, { wch: 14 }];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    if (kind === "csv") XLSX.writeFile(wb, "format-import.csv", { bookType: "csv" });
+    else XLSX.writeFile(wb, "format-import.xlsx");
+  } catch (e) { console.error(e); toast("Gagal unduh template: " + ((e && e.message) || e), 6000); }
+}
+$("tpx").addEventListener("click", function () { dlTemplate("xlsx"); });
+$("tpc").addEventListener("click", function () { dlTemplate("csv"); });
+
 /* ---------- routing ---------- */
 function route() {
-  var p = location.hash === "#input" ? "input" : "dashboard";
-  ["dashboard", "input"].forEach(function (n) {
+  var p = location.hash === "#input" ? "input" : location.hash === "#guide" ? "guide" : "dashboard";
+  ["dashboard", "input", "guide"].forEach(function (n) {
     $("p-" + n).classList.toggle("hide", n !== p);
     $("t-" + n).classList.toggle("on", n === p);
   });
