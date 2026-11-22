@@ -75,6 +75,12 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
     <input id="imp" type="file" accept=".csv,.xlsx,.xls" class="hide">
     <a class="btn" href="#input" onclick="resetForm()">+ Tambah</a>
   </div>
+  <div class="tools">
+    <input id="bln" placeholder="Bulan" title="Bulan untuk judul teks Copy" style="width:140px;flex:none">
+    <button class="btn sec" type="button" id="cpb">Copy</button>
+    <button class="btn sec" type="button" id="exb">Export</button>
+    <button class="btn sec" type="button" id="dab" style="color:var(--dg)">Hapus Semua</button>
+  </div>
   <div class="card wrap" style="padding:0">
     <table>
       <thead><tr><th>No</th><th>Nama</th><th class="n">Qty</th><th class="n">Harga/Qty</th><th class="n">Total</th><th></th></tr></thead>
@@ -112,9 +118,9 @@ var $ = function (id) { return document.getElementById(id); };
 var rp = function (n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); };
 var esc = function (s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; };
 
-function toast(m) {
+function toast(m, ms) {
   var t = $("toast"); t.textContent = m; t.classList.add("show");
-  clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 1800);
+  clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, ms || 1800);
 }
 
 /* ---------- data layer: Supabase ---------- */
@@ -137,7 +143,7 @@ async function initData() {
   }
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   try { await loadRemote(); }
-  catch (e) { ready = true; render(); toast("Gagal terhubung ke database"); }
+  catch (e) { console.error(e); sb = null; ready = true; render(); toast("Gagal terhubung: " + ((e && e.message) || e), 7000); }
 }
 async function putItem(it) {
   var r = await sb.from("items").upsert({ id: it.id, nama: it.nama, qty: it.qty, harga: it.harga, ts: it.ts });
@@ -253,6 +259,7 @@ $("imp").addEventListener("change", async function () {
   var f = this.files[0]; this.value = "";
   if (!f) return;
   try {
+    if (!sb) { toast("Belum terhubung ke database", 5000); return; }
     await loadXLSX();
     var wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
     var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
@@ -265,7 +272,87 @@ $("imp").addEventListener("change", async function () {
     if (rr.error) throw rr.error;
     await loadRemote();
     toast(list.length + " barang diimport");
-  } catch (e) { toast("Gagal membaca file"); }
+  } catch (e) { console.error(e); toast("Gagal import: " + ((e && e.message) || e), 7000); }
+});
+
+/* ---------- copy, export, hapus semua ---------- */
+var BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+(function () {
+  var d = new Date(), m = d.getMonth() + (d.getDate() >= 20 ? 1 : 0);
+  $("bln").value = BULAN[m % 12];
+})();
+function fmtQty(q) { return String(q).replace(".", ","); }
+function fmtNum(n) { return Number(n).toLocaleString("id-ID"); }
+
+function buildText() {
+  var L = ["Permintaan alat dan barang habis pakai " + $("bln").value.trim() + " :"];
+  items.forEach(function (x) {
+    L.push("* " + x.nama + " (" + fmtQty(x.qty) + " pcs) - " + fmtNum(x.harga) + "/pcs");
+  });
+  return L.join("\n");
+}
+$("cpb").addEventListener("click", async function () {
+  if (!items.length) { toast("Belum ada data"); return; }
+  var t = buildText();
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) {
+    var ta = document.createElement("textarea");
+    ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e2) {}
+    document.body.removeChild(ta);
+  }
+  toast("Teks disalin");
+});
+
+function loadScript(url, ok) {
+  return new Promise(function (res, rej) {
+    if (ok()) return res();
+    var s = document.createElement("script");
+    s.src = url; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+$("exb").addEventListener("click", async function () {
+  if (!items.length) { toast("Belum ada data"); return; }
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js", function () { return window.ExcelJS; });
+    var wb = new ExcelJS.Workbook(), ws = wb.addWorksheet("Data");
+    ws.columns = [{ width: 50 }, { width: 18 }];
+    var thin = { style: "thin", color: { argb: "FF000000" } };
+    var bd = { top: thin, left: thin, bottom: thin, right: thin };
+    var h = ws.addRow(["KETERANGAN", "HARGA"]);
+    h.eachCell(function (c) {
+      c.font = { name: "Calibri", size: 11, bold: true };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF4B6B0" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+      c.border = bd;
+    });
+    items.forEach(function (x) {
+      var r = ws.addRow([x.nama.toUpperCase() + "*" + fmtQty(x.qty), Math.round(x.qty * x.harga)]);
+      r.eachCell(function (c) { c.font = { name: "Calibri", size: 11 }; c.border = bd; });
+      r.getCell(2).numFmt = '_("Rp"* #,##0_);_("Rp"* \\(#,##0\\);_("Rp"* "-"_);_(@_)';
+    });
+    var buf = await wb.xlsx.writeBuffer();
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+    a.download = "bahan-habis-pakai-" + $("bln").value.trim().toLowerCase().replace(/\s+/g, "-") + ".xlsx";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    toast("File diexport");
+  } catch (e) { console.error(e); toast("Gagal export: " + ((e && e.message) || e), 6000); }
+});
+
+$("dab").addEventListener("click", async function () {
+  if (!items.length) { toast("Data sudah kosong"); return; }
+  if (!confirm("Hapus SEMUA " + items.length + " data? Tindakan ini tidak bisa dibatalkan.")) return;
+  if (!confirm("Yakin? Semua data akan hilang permanen.")) return;
+  try {
+    if (!sb) throw new Error("Belum terhubung ke database");
+    var r = await sb.from("items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (r.error) throw r.error;
+    await loadRemote();
+    toast("Semua data dihapus");
+  } catch (e) { console.error(e); toast("Gagal hapus: " + ((e && e.message) || e), 6000); }
 });
 
 /* ---------- routing ---------- */
