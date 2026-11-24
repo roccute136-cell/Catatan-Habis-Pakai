@@ -33,7 +33,7 @@ input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2)}
 .btn.sec{background:var(--ac2);color:var(--ac)}
 .btn:disabled{opacity:.5}
 .wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:560px}
+table{width:100%;border-collapse:collapse;min-width:700px}
 th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
 th{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 td.n,th.n{text-align:right}
@@ -52,13 +52,15 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;font-weight:600;z-index:20}
 #toast.show{opacity:1;transform:translateX(-50%)}
 .gd{max-width:720px}.gd ol{padding-left:20px;margin:0}.gd li{margin-bottom:10px}.gd h2{font-size:16px;margin:0 0 10px}.gd .card{margin-bottom:14px}code{background:var(--ac2);color:var(--ac);padding:1px 6px;border-radius:6px;font-size:13px}.note{color:var(--mu);font-size:13px;margin:10px 0 0}
+.ic.ok:hover{color:var(--ok);border-color:var(--ok)}.bd{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}.bd.okb{background:rgba(5,150,105,.14);color:var(--ok)}.bd.bad{background:rgba(220,38,38,.14);color:var(--dg)}
+@media(max-width:520px){.logo{display:none}.bar{justify-content:center}nav a{padding:6px 12px}}
 .hide{display:none}
 </style>
 </head>
 <body>
 <header><div class="bar">
   <div class="logo">📦 Bahan Habis Pakai</div>
-  <nav><a href="#dashboard" id="t-dashboard">Dashboard</a><a href="#input" id="t-input">Input</a><a href="#guide" id="t-guide">Guide</a></nav>
+  <nav><a href="#dashboard" id="t-dashboard">Dashboard</a><a href="#stok" id="t-stok">Stok</a><a href="#input" id="t-input">Input</a><a href="#guide" id="t-guide">Guide</a></nav>
 </div></header>
 
 <main>
@@ -92,6 +94,23 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
   </div>
 </section>
 
+<section id="p-stok" class="hide">
+  <h1>Stok Habis Pakai</h1>
+  <p class="sub">Barang yang sudah dibeli dan masih tersedia.</p>
+  <div class="stats">
+    <div class="card stat"><small>Jumlah Barang</small><b id="s4">0</b></div>
+    <div class="card stat"><small>Stok Habis</small><b id="s5">0</b></div>
+  </div>
+  <div class="tools"><input id="qs" type="search" placeholder="Cari nama barang..."></div>
+  <div class="card wrap" style="padding:0">
+    <table>
+      <thead><tr><th>No</th><th>Nama</th><th class="n">Stok</th><th class="n">Harga Terakhir</th><th>Bulan Beli</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tbs"></tbody>
+    </table>
+    <div id="ems" class="empty hide"></div>
+  </div>
+</section>
+
 <section id="p-input" class="hide">
   <h1 id="ft">Input Barang</h1>
   <p class="sub">Catat bahan atau alat habis pakai yang dibeli.</p>
@@ -111,11 +130,22 @@ label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
 </section>
 
 <section id="p-guide" class="hide gd">
-  <h1>Guide Import</h1>
-  <p class="sub">Cara memasukkan banyak barang sekaligus dari file spreadsheet.</p>
+  <h1>Guide</h1>
+  <p class="sub">Panduan alur stok dan import dari spreadsheet.</p>
 
   <div class="card">
-    <h2>Langkah</h2>
+    <h2>Alur Stok</h2>
+    <ol>
+      <li>Catat barang yang perlu dibeli di <b>Dashboard</b> (lewat Input atau Import).</li>
+      <li>Setelah barang dibeli, klik <b>Sudah dibeli</b>. Barang pindah ke halaman <b>Stok</b> dan hilang dari daftar permintaan.</li>
+      <li>Di halaman Stok, klik <b>Pakai</b> setiap barang dipakai agar stok berkurang. Status menjadi <b>Habis</b> saat stok 0.</li>
+      <li>Klik <b>Beli lagi</b> untuk memasukkan barang itu kembali ke daftar permintaan di Dashboard.</li>
+    </ol>
+    <p class="note">Jika barang dengan nama yang sama sudah ada di Stok, jumlahnya ditambahkan ke baris yang sama.</p>
+  </div>
+
+  <div class="card">
+    <h2>Langkah Import</h2>
     <ol>
       <li>Unduh template di bawah, lalu isi dengan data barang Anda.</li>
       <li>Hapus baris contoh yang tidak diperlukan.</li>
@@ -182,6 +212,7 @@ async function loadRemote() {
     return { id: x.id, nama: x.nama, qty: Number(x.qty), harga: Number(x.harga), ts: Number(x.ts) };
   });
   ready = true; render();
+  await loadStok();
 }
 async function initData() {
   if (!window.supabase || SUPABASE_URL.indexOf("ISI_") === 0) {
@@ -214,7 +245,7 @@ function render() {
     var no = items.indexOf(x) + 1;
     return "<tr><td>" + no + "</td><td>" + esc(x.nama) + "</td><td class='n'>" + x.qty +
       "</td><td class='n'>" + rp(x.harga) + "</td><td class='n'>" + rp(x.qty * x.harga) +
-      "</td><td><div class='act'><button class='ic' data-e='" + x.id + "'>Edit</button>" +
+      "</td><td><div class='act'><button class='ic ok' data-b='" + x.id + "'>Sudah dibeli</button><button class='ic' data-e='" + x.id + "'>Edit</button>" +
       "<button class='ic d' data-d='" + x.id + "'>Hapus</button></div></td></tr>";
   }).join("");
   var em = $("em");
@@ -226,6 +257,10 @@ function render() {
 
 $("tb").addEventListener("click", function (e) {
   var b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.b) {
+    markBought(b.dataset.b).catch(function (err) { console.error(err); toast("Gagal: " + ((err && err.message) || err), 6000); });
+    return;
+  }
   if (b.dataset.e) {
     var it = items.find(function (x) { return x.id === b.dataset.e; });
     if (!it) return;
@@ -390,7 +425,7 @@ $("exb").addEventListener("click", async function () {
 
 $("dab").addEventListener("click", async function () {
   if (!items.length) { toast("Data sudah kosong"); return; }
-  if (!confirm("Hapus SEMUA " + items.length + " data? Tindakan ini tidak bisa dibatalkan.")) return;
+  if (!confirm("Hapus SEMUA " + items.length + " barang di daftar permintaan? Data Stok tidak ikut terhapus. Tindakan ini tidak bisa dibatalkan.")) return;
   if (!confirm("Yakin? Semua data akan hilang permanen.")) return;
   try {
     if (!sb) throw new Error("Belum terhubung ke database");
@@ -417,10 +452,91 @@ async function dlTemplate(kind) {
 $("tpx").addEventListener("click", function () { dlTemplate("xlsx"); });
 $("tpc").addEventListener("click", function () { dlTemplate("csv"); });
 
+/* ---------- stok ---------- */
+var stok = [], stokErr = "", qsq = "";
+async function loadStok() {
+  try {
+    var r = await sb.from("stok").select("*").order("ts", { ascending: true });
+    if (r.error) throw r.error;
+    stok = r.data.map(function (x) {
+      return { id: x.id, nama: x.nama, qty: Number(x.qty), harga: Number(x.harga), bulan: x.bulan || "", ts: Number(x.ts) };
+    });
+    stokErr = "";
+  } catch (e) { console.error(e); stok = []; stokErr = (e && e.message) || String(e); }
+  renderStok();
+}
+function renderStok() {
+  var sorted = stok.slice().sort(function (a, b) {
+    return (a.qty <= 0 ? 0 : 1) - (b.qty <= 0 ? 0 : 1) || a.ts - b.ts;
+  });
+  var list = sorted.filter(function (x) { return x.nama.toLowerCase().indexOf(qsq) > -1; });
+  $("s4").textContent = stok.length;
+  $("s5").textContent = stok.filter(function (x) { return x.qty <= 0; }).length;
+  $("tbs").innerHTML = list.map(function (x) {
+    var habis = x.qty <= 0;
+    return "<tr><td>" + (sorted.indexOf(x) + 1) + "</td><td>" + esc(x.nama) + "</td><td class='n'>" + fmtQty(x.qty) +
+      "</td><td class='n'>" + rp(x.harga) + "</td><td>" + esc(x.bulan) + "</td><td><span class='bd " + (habis ? "bad" : "okb") + "'>" +
+      (habis ? "Habis" : "Tersedia") + "</span></td><td><div class='act'>" +
+      "<button class='ic' data-u='" + x.id + "'>Pakai</button><button class='ic ok' data-r='" + x.id + "'>Beli lagi</button>" +
+      "<button class='ic d' data-x='" + x.id + "'>Hapus</button></div></td></tr>";
+  }).join("");
+  var em = $("ems");
+  em.classList.toggle("hide", list.length > 0);
+  em.textContent = stokErr ? "Tabel stok belum siap: " + stokErr + ". Jalankan SQL tabel stok di Supabase." :
+    (!ready ? "Memuat..." : (stok.length ? "Tidak ditemukan." : "Stok masih kosong. Klik \"Sudah dibeli\" pada barang di Dashboard."));
+}
+$("qs").addEventListener("input", function () { qsq = this.value.trim().toLowerCase(); renderStok(); });
+
+async function markBought(id) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var it = items.find(function (x) { return x.id === id; });
+  if (!it) return;
+  var bln = BULAN[new Date().getMonth()];
+  var ex = stok.find(function (s) { return s.nama.trim().toLowerCase() === it.nama.trim().toLowerCase(); });
+  var rec = ex
+    ? { id: ex.id, nama: ex.nama, qty: Math.round((ex.qty + it.qty) * 1000) / 1000, harga: it.harga, bulan: bln, ts: ex.ts }
+    : { id: uid(), nama: it.nama, qty: it.qty, harga: it.harga, bulan: bln, ts: Date.now() };
+  var r = await sb.from("stok").upsert(rec);
+  if (r.error) throw r.error;
+  var d = await sb.from("items").delete().eq("id", id);
+  if (d.error) throw d.error;
+  await loadRemote();
+  toast("Dipindah ke Stok");
+}
+
+$("tbs").addEventListener("click", async function (e) {
+  var b = e.target.closest("button"); if (!b) return;
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var id = b.dataset.u || b.dataset.r || b.dataset.x;
+  var it = stok.find(function (x) { return x.id === id; });
+  if (!it) return;
+  try {
+    if (b.dataset.u) {
+      var v = parseFloat(String(prompt("Jumlah yang dipakai:", "1") || "").replace(",", "."));
+      if (!(v > 0)) return;
+      if (v > it.qty) { toast("Melebihi stok (" + fmtQty(it.qty) + ")", 3000); return; }
+      var r = await sb.from("stok").update({ qty: Math.round((it.qty - v) * 1000) / 1000 }).eq("id", it.id);
+      if (r.error) throw r.error;
+      await loadStok(); toast("Stok diperbarui");
+    } else if (b.dataset.r) {
+      var n = parseFloat(String(prompt("Jumlah yang ingin dibeli:", "1") || "").replace(",", "."));
+      if (!(n > 0)) return;
+      var r2 = await sb.from("items").insert({ id: uid(), nama: it.nama, qty: n, harga: it.harga, ts: Date.now() });
+      if (r2.error) throw r2.error;
+      await loadRemote(); toast("Ditambahkan ke daftar permintaan");
+    } else if (b.dataset.x) {
+      if (!confirm("Hapus \"" + it.nama + "\" dari stok?")) return;
+      var r3 = await sb.from("stok").delete().eq("id", it.id);
+      if (r3.error) throw r3.error;
+      await loadStok(); toast("Dihapus dari stok");
+    }
+  } catch (err) { console.error(err); toast("Gagal: " + ((err && err.message) || err), 6000); }
+});
+
 /* ---------- routing ---------- */
 function route() {
-  var p = location.hash === "#input" ? "input" : location.hash === "#guide" ? "guide" : "dashboard";
-  ["dashboard", "input", "guide"].forEach(function (n) {
+  var p = location.hash === "#input" ? "input" : location.hash === "#guide" ? "guide" : location.hash === "#stok" ? "stok" : "dashboard";
+  ["dashboard", "input", "stok", "guide"].forEach(function (n) {
     $("p-" + n).classList.toggle("hide", n !== p);
     $("t-" + n).classList.toggle("on", n === p);
   });
