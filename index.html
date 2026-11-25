@@ -296,7 +296,7 @@ async function initData() {
     ready = true; render(); toast("Isi SUPABASE_URL dan SUPABASE_KEY di file"); return;
   }
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  try { await loadRemote(); }
+  try { await loadRemote(); startLive(); }
   catch (e) { console.error(e); sb = null; ready = true; render(); toast("Gagal terhubung: " + ((e && e.message) || e), 7000); }
 }
 async function putItem(it) {
@@ -642,9 +642,11 @@ async function actUse(it) {
   if (!sb) { toast("Belum terhubung ke database", 5000); return; }
   var a = await ask({ title: "Pakai " + it.nama, msg: "Stok saat ini: " + fmtQty(it.qty), ok: "Pakai", input: { label: "Jumlah dipakai", value: 1 } });
   if (!a) return;
-  if (a.value > it.qty) { toast("Melebihi stok (" + fmtQty(it.qty) + ")", 3000); return; }
+  var cur = stok.find(function (x) { return x.id === it.id; });
+  if (!cur) { toast("Barang sudah tidak ada di stok", 3000); return; }
+  if (a.value > cur.qty) { toast("Melebihi stok (" + fmtQty(cur.qty) + ")", 3000); return; }
   await run("Memperbarui stok...", async function () {
-    var r = await sb.from("stok").update({ qty: Math.round((it.qty - a.value) * 1000) / 1000 }).eq("id", it.id);
+    var r = await sb.from("stok").update({ qty: Math.round((cur.qty - a.value) * 1000) / 1000 }).eq("id", it.id);
     if (r.error) throw r.error;
     await loadStok(); toast("Stok diperbarui");
   });
@@ -707,6 +709,26 @@ document.addEventListener("keydown", function (e) {
   if (e.key !== "Escape") return;
   if (!$("cf").classList.contains("hide")) $("cfc").click(); else { closeModal(); closeStok(); }
 });
+
+/* ---------- update otomatis antar perangkat ---------- */
+var liveOn = false;
+async function refreshQuiet() {
+  if (!sb || busyN > 0) return;
+  try { await loadRemote(); } catch (e) { console.error(e); }
+}
+function startLive() {
+  if (liveOn) return; liveOn = true;
+  var t = null;
+  function sched() { clearTimeout(t); t = setTimeout(refreshQuiet, 400); }
+  try {
+    sb.channel("live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "items" }, sched)
+      .on("postgres_changes", { event: "*", schema: "public", table: "stok" }, sched)
+      .subscribe();
+  } catch (e) { console.error(e); }
+  setInterval(function () { if (!document.hidden) refreshQuiet(); }, 20000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) refreshQuiet(); });
+}
 
 /* ---------- routing ---------- */
 function route() {

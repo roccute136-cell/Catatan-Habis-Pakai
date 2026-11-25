@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catatan Bahan Habis Pakai</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#111827;--mu:#6b7280;--bd:#e5e7eb;--ac:#4f46e5;--ac2:#eef2ff;--dg:#dc2626;--ok:#059669;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#181b22;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2a2f3a;--ac:#818cf8;--ac2:#1e2140;--dg:#f87171;--ok:#34d399;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1115;--card:#181b22;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2a2f3a;--ac:#818cf8;--ac2:#1e2140;--dg:#f87171;--ok:#34d399;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+.bar{max-width:980px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-weight:700;font-size:16px}
+nav{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+nav a{padding:6px 14px;border-radius:8px;color:var(--mu);text-decoration:none;font-weight:600;font-size:14px}
+nav a.on{background:var(--card);color:var(--ac);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+main{max-width:980px;margin:auto;padding:20px 16px 48px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--mu);margin:0 0 18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.stat small{color:var(--mu);display:block;font-weight:600}
+.stat b{font-size:22px}
+.tools{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+input{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;width:100%;outline:none}
+input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2)}
+.tools input[type=search]{flex:1;min-width:180px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 16px;background:var(--ac);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.sec{background:var(--ac2);color:var(--ac)}
+.btn:disabled{opacity:.5}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+tfoot td{font-weight:700;border-bottom:0}
+.act{display:flex;gap:6px;justify-content:flex-end}
+.ic{border:1px solid var(--bd);background:transparent;color:var(--mu);border-radius:8px;padding:4px 10px;cursor:pointer;font:inherit;font-size:13px}
+.ic:hover{color:var(--ac);border-color:var(--ac)}
+.ic.d:hover{color:var(--dg);border-color:var(--dg)}
+.empty{text-align:center;color:var(--mu);padding:36px 0}
+form{max-width:520px}
+label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tot{margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--ac2);display:flex;justify-content:space-between;align-items:center}
+.tot b{font-size:20px;color:var(--ac)}
+.btns{display:flex;gap:10px;margin-top:18px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;font-weight:600;z-index:100}
+#toast.show{opacity:1;transform:translateX(-50%)}
+.gd{max-width:720px}.gd ol{padding-left:20px;margin:0}.gd li{margin-bottom:10px}.gd h2{font-size:16px;margin:0 0 10px}.gd .card{margin-bottom:14px}code{background:var(--ac2);color:var(--ac);padding:1px 6px;border-radius:6px;font-size:13px}.note{color:var(--mu);font-size:13px;margin:10px 0 0}
+.ic.ok:hover{color:var(--ok);border-color:var(--ok)}.bd{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}.bd.okb{background:rgba(5,150,105,.14);color:var(--ok)}.bd.bad{background:rgba(220,38,38,.14);color:var(--dg)}
+@media(max-width:520px){.logo{display:none}.bar{justify-content:center}nav a{padding:6px 12px}}
+#tb tr,#tbs tr{cursor:pointer}#tb tr:hover,#tbs tr:hover{background:var(--ac2)}#tb td,#tbs td{white-space:normal}#tb .act,#tbs .act{white-space:nowrap}
+.btn.dg{background:var(--dg)}@keyframes sp{to{transform:rotate(360deg)}}.spin{width:38px;height:38px;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.mc{width:100%;max-width:360px;max-height:100%;overflow:auto}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.mh b{font-size:17px;line-height:1.3}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:0 0 4px}.dl dt{color:var(--mu)}.dl dd{margin:0;text-align:right;font-weight:600}
+.mb{display:flex;gap:8px;margin:10px 0 12px}.mb .btn{flex:1;padding:10px 8px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo">📦 Bahan Habis Pakai</div>
+  <nav><a href="#dashboard" id="t-dashboard">Dashboard</a><a href="#stok" id="t-stok">Stok</a><a href="#input" id="t-input">Input</a><a href="#guide" id="t-guide">Guide</a></nav>
+</div></header>
+
+<main>
+<section id="p-dashboard">
+  <h1>Dashboard</h1>
+  <p class="sub">Ringkasan bahan dan alat habis pakai.</p>
+  <div class="stats">
+    <div class="card stat"><small>Jumlah Item</small><b id="s1">0</b></div>
+    <div class="card stat"><small>Total Qty</small><b id="s2">0</b></div>
+    <div class="card stat"><small>Total Pengeluaran</small><b id="s3">Rp0</b></div>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Cari nama barang...">
+    <button class="btn sec" type="button" id="impb" title="Kolom: Nama, Qty, Harga/Qty">Import</button>
+    <input id="imp" type="file" accept=".csv,.xlsx,.xls" class="hide">
+    <a class="btn" href="#input" onclick="resetForm()">+ Tambah</a>
+  </div>
+  <div class="tools">
+    <input id="bln" placeholder="Bulan" title="Bulan untuk judul teks Copy" style="width:140px;flex:none">
+    <button class="btn sec" type="button" id="cpb">Copy</button>
+    <button class="btn sec" type="button" id="exb">Export</button>
+    <button class="btn sec" type="button" id="dab" style="color:var(--dg)">Hapus Semua</button>
+  </div>
+  <div class="card wrap" style="padding:0">
+    <table>
+      <thead><tr><th>No</th><th>Nama</th><th class="n">Qty</th><th class="n">Harga/Qty</th><th class="n">Total</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+      <tfoot id="tf"></tfoot>
+    </table>
+    <div id="em" class="empty hide">Belum ada data. Tambahkan lewat halaman Input.</div>
+  </div>
+</section>
+
+<section id="p-stok" class="hide">
+  <h1>Stok Habis Pakai</h1>
+  <p class="sub">Barang yang sudah dibeli dan masih tersedia.</p>
+  <div class="stats">
+    <div class="card stat"><small>Jumlah Barang</small><b id="s4">0</b></div>
+    <div class="card stat"><small>Stok Habis</small><b id="s5">0</b></div>
+  </div>
+  <div class="tools"><input id="qs" type="search" placeholder="Cari nama barang..."></div>
+  <div class="card wrap" style="padding:0">
+    <table>
+      <thead><tr><th>No</th><th>Nama</th><th class="n">Stok</th><th>Status</th><th class="n">Harga Terakhir</th><th>Bulan Beli</th><th></th></tr></thead>
+      <tbody id="tbs"></tbody>
+    </table>
+    <div id="ems" class="empty hide"></div>
+  </div>
+</section>
+
+<section id="p-input" class="hide">
+  <h1 id="ft">Input Barang</h1>
+  <p class="sub">Catat bahan atau alat habis pakai yang dibeli.</p>
+  <form id="f" class="card" autocomplete="off">
+    <label for="nama" style="margin-top:0">Nama</label>
+    <input id="nama" required placeholder="mis. Lem G">
+    <div class="row">
+      <div><label for="qty">Qty</label><input id="qty" type="number" min="0.1" step="any" required placeholder="0"></div>
+      <div><label for="harga">Harga/Qty (Rp)</label><input id="harga" type="number" min="0" step="500" required placeholder="0"></div>
+    </div>
+    <div class="tot"><span>Total</span><b id="tot">Rp0</b></div>
+    <div class="btns">
+      <button class="btn" id="sv" type="submit">Simpan</button>
+      <button class="btn sec" type="button" id="cn">Batal</button>
+    </div>
+  </form>
+</section>
+
+<section id="p-guide" class="hide gd">
+  <h1>Guide</h1>
+  <p class="sub">Panduan alur stok dan import dari spreadsheet.</p>
+
+  <div class="card">
+    <h2>Alur Stok</h2>
+    <ol>
+      <li>Catat barang yang perlu dibeli di <b>Dashboard</b> (lewat Input atau Import).</li>
+      <li>Setelah barang dibeli, klik <b>Sudah dibeli</b> pada barisnya di Dashboard. Barang pindah ke halaman <b>Stok</b> dan hilang dari daftar permintaan. Klik barisnya untuk melihat detail.</li>
+      <li>Di halaman Stok, klik <b>Pakai</b> setiap barang dipakai agar stok berkurang. Status menjadi <b>Habis</b> saat stok 0.</li>
+      <li>Klik <b>Beli lagi</b> untuk memasukkan barang itu kembali ke daftar permintaan di Dashboard.</li>
+    </ol>
+    <p class="note">Jika barang dengan nama yang sama sudah ada di Stok, jumlahnya ditambahkan ke baris yang sama.</p>
+  </div>
+
+  <div class="card">
+    <h2>Langkah Import</h2>
+    <ol>
+      <li>Unduh template di bawah, lalu isi dengan data barang Anda.</li>
+      <li>Hapus baris contoh yang tidak diperlukan.</li>
+      <li>Simpan file sebagai <code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code>.</li>
+      <li>Buka <b>Dashboard</b>, klik <b>Import</b>, dan pilih file tersebut.</li>
+      <li>Periksa jumlah barang pada konfirmasi, lalu klik <b>OK</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Format kolom</h2>
+    <div class="wrap"><table style="min-width:0">
+      <thead><tr><th>No</th><th>Nama</th><th class="n">Qty</th><th class="n">Harga/Qty</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Lem G</td><td class="n">1</td><td class="n">8000</td></tr>
+        <tr><td>2</td><td>Cotton Bud</td><td class="n">2</td><td class="n">Rp7,000</td></tr>
+        <tr><td>3</td><td>Gula</td><td class="n">0.5</td><td class="n">10000</td></tr>
+      </tbody>
+    </table></div>
+    <ul style="padding-left:20px;margin:12px 0 0">
+      <li>Judul kolom wajib ada di baris pertama: <code>Nama</code>, <code>Qty</code> (atau <code>Jumlah</code>), dan <code>Harga/Qty</code> (judul diawali kata "Harga").</li>
+      <li>Kolom lain seperti <code>No</code> dan <code>Total</code> boleh ada, tetapi diabaikan. Total dihitung otomatis.</li>
+      <li>Qty boleh desimal, misalnya <code>0.5</code> atau <code>0,5</code>.</li>
+      <li>Harga boleh angka biasa atau berformat rupiah, misalnya <code>8000</code>, <code>Rp8,000</code>, atau <code>Rp8.000</code>.</li>
+      <li>Baris tanpa nama, atau dengan Qty kosong atau 0, dilewati.</li>
+      <li>Hanya sheet pertama yang dibaca.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Unduh template</h2>
+    <div class="tools" style="margin-bottom:0">
+      <button class="btn" type="button" id="tpx">Template .xlsx</button>
+      <button class="btn sec" type="button" id="tpc">Template .csv</button>
+    </div>
+    <p class="note">Import menambahkan data ke daftar yang sudah ada, tidak menimpa. Mengimpor file yang sama dua kali akan membuat data dobel. File hasil Export memiliki format berbeda, jadi tidak bisa diimpor kembali.</p>
+  </div>
+</section>
+</main>
+<div id="md" class="ov hide">
+  <div class="mc card">
+    <div class="mh"><b id="mn"></b><button class="ic" type="button" id="mx">Tutup</button></div>
+    <dl class="dl" id="dl"></dl>
+    <div class="mb">
+      <button class="btn" type="button" id="mb2">Sudah dibeli</button>
+      <button class="btn sec" type="button" id="me">Edit</button>
+    </div>
+    <button class="ic d" type="button" id="mdel" style="width:100%;padding:8px">Hapus</button>
+  </div>
+</div>
+<div id="ms" class="ov hide">
+  <div class="mc card">
+    <div class="mh"><b id="smn"></b><button class="ic" type="button" id="smx">Tutup</button></div>
+    <dl class="dl" id="sdl"></dl>
+    <div class="mb">
+      <button class="btn" type="button" id="smu">Pakai</button>
+      <button class="btn sec" type="button" id="smr">Beli lagi</button>
+    </div>
+    <button class="ic d" type="button" id="smd" style="width:100%;padding:8px">Hapus dari stok</button>
+  </div>
+</div>
+<div id="cf" class="ov hide" style="z-index:50">
+  <div class="mc card">
+    <b id="cft" style="font-size:17px"></b>
+    <p id="cfm" class="sub" style="margin:8px 0 0"></p>
+    <div id="cfi" class="hide"><label id="cfl" for="cfq"></label><input id="cfq" type="number" min="0.1" step="any"></div>
+    <div class="mb" style="margin-bottom:0">
+      <button class="btn sec" type="button" id="cfc">Batal</button>
+      <button class="btn" type="button" id="cfo">Ya</button>
+    </div>
+  </div>
+</div>
+<div id="ld" class="ov hide" style="z-index:60;flex-direction:column;gap:14px;color:#fff;font-weight:600">
+  <div class="spin"></div><div id="ldm">Memproses...</div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+var items = [], editId = null, query = "", dbc = null, ready = false, LS = "bhp-items";
+var $ = function (id) { return document.getElementById(id); };
+var rp = function (n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); };
+var esc = function (s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; };
+
+function toast(m, ms) {
+  var t = $("toast"); t.textContent = m; t.classList.add("show");
+  clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, ms || 1800);
+}
+
+/* ---------- dialog konfirmasi & loading ---------- */
+function ask(o) {
+  return new Promise(function (res) {
+    var cf = $("cf"), ok = $("cfo"), inp = $("cfq");
+    $("cft").textContent = o.title; $("cfm").textContent = o.msg || "";
+    if (o.input) { $("cfl").textContent = o.input.label; inp.value = o.input.value; $("cfi").classList.remove("hide"); }
+    else $("cfi").classList.add("hide");
+    ok.textContent = o.ok || "Ya"; ok.className = "btn" + (o.danger ? " dg" : "");
+    cf.classList.remove("hide");
+    if (o.input) setTimeout(function () { inp.focus(); inp.select(); }, 30);
+    function done(v) { cf.classList.add("hide"); ok.onclick = null; $("cfc").onclick = null; cf.onclick = null; res(v); }
+    ok.onclick = function () {
+      if (o.input) {
+        var v = parseFloat(String(inp.value).replace(",", "."));
+        if (!(v > 0)) { toast("Isi jumlah lebih dari 0"); return; }
+        done({ value: v });
+      } else done(true);
+    };
+    $("cfc").onclick = function () { done(false); };
+    cf.onclick = function (e) { if (e.target === cf) done(false); };
+  });
+}
+var busyN = 0;
+function busy(on, msg) {
+  if (on) { busyN++; $("ldm").textContent = msg || "Memproses..."; $("ld").classList.remove("hide"); }
+  else { busyN = Math.max(0, busyN - 1); if (!busyN) $("ld").classList.add("hide"); }
+}
+async function run(msg, fn) {
+  busy(true, msg);
+  try { return await fn(); }
+  catch (err) { console.error(err); toast("Gagal: " + ((err && err.message) || err), 6000); }
+  finally { busy(false); }
+}
+
+/* ---------- data layer: Supabase ---------- */
+var SUPABASE_URL = "https://zhqxynkdurvftngzjgoo.supabase.co";
+var SUPABASE_KEY = "sb_publishable_i_Ayc5Q4UqPz3KDG7agXfQ_EL9FiWZl";
+var sb = null;
+function uid() { return crypto.randomUUID(); }
+
+async function loadRemote() {
+  var r = await sb.from("items").select("*").order("ts", { ascending: true });
+  if (r.error) throw r.error;
+  items = r.data.map(function (x) {
+    return { id: x.id, nama: x.nama, qty: Number(x.qty), harga: Number(x.harga), ts: Number(x.ts) };
+  });
+  ready = true; render();
+  await loadStok();
+}
+async function initData() {
+  if (!window.supabase || SUPABASE_URL.indexOf("ISI_") === 0) {
+    ready = true; render(); toast("Isi SUPABASE_URL dan SUPABASE_KEY di file"); return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  try { await loadRemote(); }
+  catch (e) { console.error(e); sb = null; ready = true; render(); toast("Gagal terhubung: " + ((e && e.message) || e), 7000); }
+}
+async function putItem(it) {
+  var r = await sb.from("items").upsert({ id: it.id, nama: it.nama, qty: it.qty, harga: it.harga, ts: it.ts });
+  if (r.error) throw r.error;
+  await loadRemote();
+}
+async function delItem(id) {
+  var r = await sb.from("items").delete().eq("id", id);
+  if (r.error) throw r.error;
+  await loadRemote();
+}
+
+/* ---------- render dashboard ---------- */
+function render() {
+  var list = items.filter(function (x) { return x.nama.toLowerCase().indexOf(query) > -1; });
+  var tq = 0, tt = 0;
+  items.forEach(function (x) { tq += x.qty; tt += x.qty * x.harga; });
+  $("s1").textContent = items.length;
+  $("s2").textContent = tq;
+  $("s3").textContent = rp(tt);
+  if (curId && !$("md").classList.contains("hide")) fillModal();
+  $("tb").innerHTML = list.map(function (x, i) {
+    var no = items.indexOf(x) + 1;
+    return "<tr data-id='" + x.id + "'><td>" + no + "</td><td>" + esc(x.nama) + "</td><td class='n'>" + fmtQty(x.qty) +
+      "</td><td class='n'>" + rp(x.harga) + "</td><td class='n'>" + rp(x.qty * x.harga) +
+      "</td><td><div class='act'><button class='ic ok' data-b='1'>Sudah dibeli</button><button class='ic' data-e='1'>Edit</button>" +
+      "<button class='ic d' data-d='1'>Hapus</button></div></td></tr>";
+  }).join("");
+  var em = $("em");
+  em.classList.toggle("hide", list.length > 0);
+  em.textContent = !ready ? "Memuat..." : (items.length ? "Tidak ditemukan." : "Belum ada data. Tambahkan lewat halaman Input.");
+  $("tf").innerHTML = list.length ? "<tr><td colspan='4' class='n'>Total</td><td class='n'>" +
+    rp(list.reduce(function (a, x) { return a + x.qty * x.harga; }, 0)) + "</td><td></td></tr>" : "";
+}
+
+$("q").addEventListener("input", function () { query = this.value.trim().toLowerCase(); render(); });
+
+/* ---------- form ---------- */
+function calc() { $("tot").textContent = rp((+$("qty").value || 0) * (+$("harga").value || 0)); }
+function resetForm() {
+  editId = null; $("f").reset(); calc();
+  $("ft").textContent = "Input Barang"; $("sv").textContent = "Simpan";
+}
+$("qty").addEventListener("input", calc);
+$("harga").addEventListener("input", calc);
+$("cn").addEventListener("click", function () { resetForm(); location.hash = "dashboard"; });
+$("f").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var old = editId && items.find(function (x) { return x.id === editId; });
+  var it = {
+    id: editId || uid(),
+    nama: $("nama").value.trim(), qty: Math.max(0.1, parseFloat($("qty").value) || 1),
+    harga: Math.max(0, parseInt($("harga").value, 10) || 0), ts: old ? old.ts : Date.now()
+  };
+  if (!it.nama) return;
+  var edit = !!editId;
+  var ok = await ask({
+    title: edit ? "Simpan perubahan?" : "Simpan barang?",
+    msg: it.nama + ": " + fmtQty(it.qty) + " x " + rp(it.harga) + " = " + rp(it.qty * it.harga),
+    ok: edit ? "Update" : "Simpan"
+  });
+  if (!ok) return;
+  await run("Menyimpan...", async function () {
+    await putItem(it);
+    toast(edit ? "Data diperbarui" : "Data tersimpan");
+    resetForm(); location.hash = "dashboard";
+  });
+});
+
+/* ---------- import spreadsheet ---------- */
+function loadXLSX() {
+  return new Promise(function (res, rej) {
+    if (window.XLSX) return res();
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+function toMoney(v) {
+  if (typeof v === "number") return Math.round(v);
+  return parseInt(String(v == null ? "" : v).replace(/[^\d]/g, ""), 10) || 0;
+}
+function toQty(v) {
+  if (typeof v === "number") return v;
+  return parseFloat(String(v == null ? "" : v).replace(",", ".")) || 0;
+}
+function parseRows(rows) {
+  var hi = -1, c = { n: 0, q: 1, h: 2 };
+  for (var i = 0; i < Math.min(rows.length, 10); i++) {
+    var r = rows[i].map(function (x) { return String(x == null ? "" : x).toLowerCase().trim(); });
+    var n = r.indexOf("nama");
+    if (n > -1) {
+      hi = i; c.n = n;
+      c.q = r.findIndex(function (x) { return x === "qty" || x === "jumlah"; });
+      c.h = r.findIndex(function (x) { return x.indexOf("harga") === 0; });
+      break;
+    }
+  }
+  if (hi > -1 && (c.q < 0 || c.h < 0)) return [];
+  var out = [];
+  rows.slice(hi + 1).forEach(function (r) {
+    var nama = String(r[c.n] == null ? "" : r[c.n]).trim();
+    var q = toQty(r[c.q]);
+    if (nama && q > 0) out.push({ nama: nama, qty: q, harga: toMoney(r[c.h]) });
+  });
+  return out;
+}
+$("impb").addEventListener("click", function () { $("imp").click(); });
+$("imp").addEventListener("change", async function () {
+  var f = this.files[0]; this.value = "";
+  if (!f) return;
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var list = await run("Membaca file...", async function () {
+    await loadXLSX();
+    var wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+    var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
+    return parseRows(rows);
+  });
+  if (!list) return;
+  if (!list.length) { toast("Format tidak dikenali", 4000); return; }
+  var ok = await ask({ title: "Import barang?", msg: list.length + " barang dari file " + f.name + " akan ditambahkan ke daftar permintaan.", ok: "Import" });
+  if (!ok) return;
+  await run("Mengimpor " + list.length + " barang...", async function () {
+    var base = Date.now();
+    var rows2 = list.map(function (x, i) { return { id: uid(), nama: x.nama, qty: x.qty, harga: x.harga, ts: base + i }; });
+    var rr = await sb.from("items").insert(rows2);
+    if (rr.error) throw rr.error;
+    await loadRemote();
+    toast(list.length + " barang diimport");
+  });
+});
+
+/* ---------- copy, export, hapus semua ---------- */
+var BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+(function () {
+  var d = new Date(), m = d.getMonth() + (d.getDate() >= 20 ? 1 : 0);
+  $("bln").value = BULAN[m % 12];
+})();
+function fmtQty(q) { return String(q).replace(".", ","); }
+function fmtNum(n) { return Number(n).toLocaleString("id-ID"); }
+
+function buildText() {
+  var L = ["Permintaan alat dan barang habis pakai " + $("bln").value.trim() + " :"];
+  items.forEach(function (x) {
+    L.push("* " + x.nama + " (" + fmtQty(x.qty) + " pcs) - " + fmtNum(x.harga) + "/pcs");
+  });
+  return L.join("\n");
+}
+$("cpb").addEventListener("click", async function () {
+  if (!items.length) { toast("Belum ada data"); return; }
+  var t = buildText();
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) {
+    var ta = document.createElement("textarea");
+    ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e2) {}
+    document.body.removeChild(ta);
+  }
+  toast("Teks disalin");
+});
+
+function loadScript(url, ok) {
+  return new Promise(function (res, rej) {
+    if (ok()) return res();
+    var s = document.createElement("script");
+    s.src = url; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+async function doExport() {
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js", function () { return window.ExcelJS; });
+    var wb = new ExcelJS.Workbook(), ws = wb.addWorksheet("Data");
+    ws.columns = [{ width: 50 }, { width: 18 }];
+    var thin = { style: "thin", color: { argb: "FF000000" } };
+    var bd = { top: thin, left: thin, bottom: thin, right: thin };
+    var h = ws.addRow(["KETERANGAN", "HARGA"]);
+    h.eachCell(function (c) {
+      c.font = { name: "Calibri", size: 11, bold: true };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF4B6B0" } };
+      c.alignment = { horizontal: "center", vertical: "middle" };
+      c.border = bd;
+    });
+    items.forEach(function (x) {
+      var r = ws.addRow([x.nama.toUpperCase() + "*" + fmtQty(x.qty), Math.round(x.qty * x.harga)]);
+      r.eachCell(function (c) { c.font = { name: "Calibri", size: 11 }; c.border = bd; });
+      r.getCell(2).numFmt = '_("Rp"* #,##0_);_("Rp"* \\(#,##0\\);_("Rp"* "-"_);_(@_)';
+    });
+    var buf = await wb.xlsx.writeBuffer();
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+    a.download = "bahan-habis-pakai-" + $("bln").value.trim().toLowerCase().replace(/\s+/g, "-") + ".xlsx";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    toast("File diexport");
+  } catch (e) { console.error(e); toast("Gagal export: " + ((e && e.message) || e), 6000); }
+}
+$("exb").addEventListener("click", async function () {
+  if (!items.length) { toast("Belum ada data"); return; }
+  var ok = await ask({ title: "Export ke Excel?", msg: items.length + " barang akan diunduh sebagai file .xlsx.", ok: "Export" });
+  if (!ok) return;
+  await run("Membuat file Excel...", doExport);
+});
+
+$("dab").addEventListener("click", async function () {
+  if (!items.length) { toast("Data sudah kosong"); return; }
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var ok = await ask({ title: "Hapus semua?", msg: "Semua " + items.length + " barang di daftar permintaan akan dihapus. Data Stok tidak ikut terhapus.", ok: "Hapus Semua", danger: true });
+  if (!ok) return;
+  var ok2 = await ask({ title: "Yakin?", msg: "Tindakan ini tidak bisa dibatalkan.", ok: "Ya, hapus", danger: true });
+  if (!ok2) return;
+  await run("Menghapus semua data...", async function () {
+    var r = await sb.from("items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (r.error) throw r.error;
+    await loadRemote();
+    toast("Semua data dihapus");
+  });
+});
+
+/* ---------- template download ---------- */
+async function dlTemplate(kind) {
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", function () { return window.XLSX; });
+    var aoa = [["No", "Nama", "Qty", "Harga/Qty"], [1, "Lem G", 1, 8000], [2, "Cotton Bud", 2, 7000], [3, "Gula", 0.5, 10000]];
+    var ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [{ wch: 6 }, { wch: 40 }, { wch: 8 }, { wch: 14 }];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    if (kind === "csv") XLSX.writeFile(wb, "format-import.csv", { bookType: "csv" });
+    else XLSX.writeFile(wb, "format-import.xlsx");
+  } catch (e) { console.error(e); toast("Gagal unduh template: " + ((e && e.message) || e), 6000); }
+}
+$("tpx").addEventListener("click", function () { dlTemplate("xlsx"); });
+$("tpc").addEventListener("click", function () { dlTemplate("csv"); });
+
+/* ---------- stok ---------- */
+var stok = [], stokErr = "", qsq = "";
+async function loadStok() {
+  try {
+    var r = await sb.from("stok").select("*").order("ts", { ascending: true });
+    if (r.error) throw r.error;
+    stok = r.data.map(function (x) {
+      return { id: x.id, nama: x.nama, qty: Number(x.qty), harga: Number(x.harga), bulan: x.bulan || "", ts: Number(x.ts) };
+    });
+    stokErr = "";
+  } catch (e) { console.error(e); stok = []; stokErr = (e && e.message) || String(e); }
+  renderStok();
+}
+function renderStok() {
+  var sorted = stok.slice().sort(function (a, b) {
+    return (a.qty <= 0 ? 0 : 1) - (b.qty <= 0 ? 0 : 1) || a.ts - b.ts;
+  });
+  var list = sorted.filter(function (x) { return x.nama.toLowerCase().indexOf(qsq) > -1; });
+  $("s4").textContent = stok.length;
+  $("s5").textContent = stok.filter(function (x) { return x.qty <= 0; }).length;
+  if (curSid && !$("ms").classList.contains("hide")) fillStok();
+  $("tbs").innerHTML = list.map(function (x) {
+    var habis = x.qty <= 0;
+    return "<tr data-id='" + x.id + "'><td>" + (sorted.indexOf(x) + 1) + "</td><td>" + esc(x.nama) + "</td><td class='n'>" + fmtQty(x.qty) +
+      "</td><td><span class='bd " + (habis ? "bad" : "okb") + "'>" + (habis ? "Habis" : "Tersedia") + "</span></td><td class='n'>" +
+      rp(x.harga) + "</td><td>" + esc(x.bulan) + "</td><td><div class='act'>" +
+      "<button class='ic' data-u='1'>Pakai</button><button class='ic ok' data-r='1'>Beli lagi</button>" +
+      "<button class='ic d' data-x='1'>Hapus</button></div></td></tr>";
+  }).join("");
+  var em = $("ems");
+  em.classList.toggle("hide", list.length > 0);
+  em.textContent = stokErr ? "Tabel stok belum siap: " + stokErr + ". Jalankan SQL tabel stok di Supabase." :
+    (!ready ? "Memuat..." : (stok.length ? "Tidak ditemukan." : "Stok masih kosong. Klik \"Sudah dibeli\" pada barang di Dashboard."));
+}
+$("qs").addEventListener("input", function () { qsq = this.value.trim().toLowerCase(); renderStok(); });
+
+async function markBought(id) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var it = items.find(function (x) { return x.id === id; });
+  if (!it) return;
+  var bln = BULAN[new Date().getMonth()];
+  var ex = stok.find(function (s) { return s.nama.trim().toLowerCase() === it.nama.trim().toLowerCase(); });
+  var rec = ex
+    ? { id: ex.id, nama: ex.nama, qty: Math.round((ex.qty + it.qty) * 1000) / 1000, harga: it.harga, bulan: bln, ts: ex.ts }
+    : { id: uid(), nama: it.nama, qty: it.qty, harga: it.harga, bulan: bln, ts: Date.now() };
+  var r = await sb.from("stok").upsert(rec);
+  if (r.error) throw r.error;
+  var d = await sb.from("items").delete().eq("id", id);
+  if (d.error) throw d.error;
+  await loadRemote();
+  toast("Dipindah ke Stok");
+}
+
+/* ----- aksi daftar permintaan (Dashboard) ----- */
+function startEdit(it) {
+  editId = it.id; $("nama").value = it.nama; $("qty").value = it.qty; $("harga").value = it.harga;
+  $("ft").textContent = "Edit Barang"; $("sv").textContent = "Update"; calc();
+  closeModal(); location.hash = "input";
+}
+async function actBought(it) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var ok = await ask({ title: "Sudah dibeli?", msg: it.nama + " akan dipindah ke halaman Stok dan dihapus dari daftar permintaan.", ok: "Ya, sudah dibeli" });
+  if (!ok) return;
+  closeModal();
+  await run("Memindahkan ke Stok...", function () { return markBought(it.id); });
+}
+async function actDel(it) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var ok = await ask({ title: "Hapus barang?", msg: it.nama + " akan dihapus dari daftar permintaan.", ok: "Hapus", danger: true });
+  if (!ok) return;
+  closeModal();
+  await run("Menghapus...", async function () { await delItem(it.id); toast("Data dihapus"); });
+}
+
+/* ----- popup detail Dashboard ----- */
+var curId = null;
+function curItem() { return items.find(function (x) { return x.id === curId; }); }
+function fillModal() {
+  var x = curItem();
+  if (!x) { closeModal(); return; }
+  $("mn").textContent = x.nama;
+  $("dl").innerHTML = "<dt>Qty</dt><dd>" + fmtQty(x.qty) + "</dd>" +
+    "<dt>Harga/Qty</dt><dd>" + rp(x.harga) + "</dd>" +
+    "<dt>Total</dt><dd>" + rp(x.qty * x.harga) + "</dd>";
+}
+function openModal(id) { curId = id; fillModal(); $("md").classList.remove("hide"); }
+function closeModal() { curId = null; $("md").classList.add("hide"); }
+
+$("tb").addEventListener("click", function (e) {
+  var tr = e.target.closest("tr"); if (!tr || !tr.dataset.id) return;
+  var it = items.find(function (x) { return x.id === tr.dataset.id; }); if (!it) return;
+  var b = e.target.closest("button");
+  if (!b) { openModal(it.id); return; }
+  if (b.dataset.b) actBought(it);
+  else if (b.dataset.e) startEdit(it);
+  else if (b.dataset.d) actDel(it);
+});
+$("mx").addEventListener("click", closeModal);
+$("md").addEventListener("click", function (e) { if (e.target === this) closeModal(); });
+$("mb2").addEventListener("click", function () { var it = curItem(); if (it) actBought(it); });
+$("me").addEventListener("click", function () { var it = curItem(); if (it) startEdit(it); });
+$("mdel").addEventListener("click", function () { var it = curItem(); if (it) actDel(it); });
+
+/* ----- aksi stok ----- */
+async function actUse(it) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var a = await ask({ title: "Pakai " + it.nama, msg: "Stok saat ini: " + fmtQty(it.qty), ok: "Pakai", input: { label: "Jumlah dipakai", value: 1 } });
+  if (!a) return;
+  if (a.value > it.qty) { toast("Melebihi stok (" + fmtQty(it.qty) + ")", 3000); return; }
+  await run("Memperbarui stok...", async function () {
+    var r = await sb.from("stok").update({ qty: Math.round((it.qty - a.value) * 1000) / 1000 }).eq("id", it.id);
+    if (r.error) throw r.error;
+    await loadStok(); toast("Stok diperbarui");
+  });
+}
+async function actReorder(it) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var n = await ask({ title: "Beli lagi " + it.nama, msg: "Barang akan ditambahkan ke daftar permintaan di Dashboard.", ok: "Tambahkan", input: { label: "Jumlah dibeli", value: 1 } });
+  if (!n) return;
+  closeStok();
+  await run("Menambahkan ke daftar...", async function () {
+    var r = await sb.from("items").insert({ id: uid(), nama: it.nama, qty: n.value, harga: it.harga, ts: Date.now() });
+    if (r.error) throw r.error;
+    await loadRemote(); toast("Ditambahkan ke daftar permintaan");
+  });
+}
+async function actDelStok(it) {
+  if (!sb) { toast("Belum terhubung ke database", 5000); return; }
+  var ok = await ask({ title: "Hapus dari stok?", msg: it.nama + " akan dihapus dari stok.", ok: "Hapus", danger: true });
+  if (!ok) return;
+  closeStok();
+  await run("Menghapus...", async function () {
+    var r = await sb.from("stok").delete().eq("id", it.id);
+    if (r.error) throw r.error;
+    await loadStok(); toast("Dihapus dari stok");
+  });
+}
+
+/* ----- popup detail Stok ----- */
+var curSid = null;
+function curStok() { return stok.find(function (x) { return x.id === curSid; }); }
+function fillStok() {
+  var x = curStok();
+  if (!x) { closeStok(); return; }
+  var habis = x.qty <= 0;
+  $("smn").textContent = x.nama;
+  $("sdl").innerHTML = "<dt>Stok</dt><dd>" + fmtQty(x.qty) + "</dd>" +
+    "<dt>Status</dt><dd><span class='bd " + (habis ? "bad" : "okb") + "'>" + (habis ? "Habis" : "Tersedia") + "</span></dd>" +
+    "<dt>Harga terakhir</dt><dd>" + rp(x.harga) + "</dd>" +
+    "<dt>Bulan beli</dt><dd>" + (esc(x.bulan) || "-") + "</dd>";
+}
+function openStok(id) { curSid = id; fillStok(); $("ms").classList.remove("hide"); }
+function closeStok() { curSid = null; $("ms").classList.add("hide"); }
+
+$("tbs").addEventListener("click", function (e) {
+  var tr = e.target.closest("tr"); if (!tr || !tr.dataset.id) return;
+  var it = stok.find(function (x) { return x.id === tr.dataset.id; }); if (!it) return;
+  var b = e.target.closest("button");
+  if (!b) { openStok(it.id); return; }
+  if (b.dataset.u) actUse(it);
+  else if (b.dataset.r) actReorder(it);
+  else if (b.dataset.x) actDelStok(it);
+});
+$("smx").addEventListener("click", closeStok);
+$("ms").addEventListener("click", function (e) { if (e.target === this) closeStok(); });
+$("smu").addEventListener("click", function () { var it = curStok(); if (it) actUse(it); });
+$("smr").addEventListener("click", function () { var it = curStok(); if (it) actReorder(it); });
+$("smd").addEventListener("click", function () { var it = curStok(); if (it) actDelStok(it); });
+
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape") return;
+  if (!$("cf").classList.contains("hide")) $("cfc").click(); else { closeModal(); closeStok(); }
+});
+
+/* ---------- routing ---------- */
+function route() {
+  var p = location.hash === "#input" ? "input" : location.hash === "#guide" ? "guide" : location.hash === "#stok" ? "stok" : "dashboard";
+  ["dashboard", "input", "stok", "guide"].forEach(function (n) {
+    $("p-" + n).classList.toggle("hide", n !== p);
+    $("t-" + n).classList.toggle("on", n === p);
+  });
+  if (p === "input" && !editId) { $("f").reset(); calc(); }
+  if (p === "input") $("nama").focus();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route(); render(); initData();
+</script>
+</body>
+</html>
